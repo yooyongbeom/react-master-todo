@@ -1,37 +1,19 @@
 import { atom, selector } from 'recoil';
 
-export enum Categories {
-  'TO_DO', // = "TO_DO", 이렇게 값을 줄수도 있다
-  'DOING',
-  'DONE',
-}
-
-export interface IToDo {
-  text: string;
-  id: number;
-  category: Categories;
-}
-
-export const categoryState = atom<Categories>({
-  key: 'category',
-  default: Categories.TO_DO,
+export const minutesState = atom({
+  key: 'minutes',
+  default: 0,
 });
 
-export const toDoState = atom<IToDo[]>({
-  key: 'toDo',
-  default: [],
-});
-
-export const toDoSelector = selector({
-  key: 'toDoSelector',
+// 타입스크립트가 못찾으면 <number>
+export const hoursSelector = selector({
+  key: 'hours',
   get: ({ get }) => {
-    const toDos = get(toDoState);
-    const category = get(categoryState);
-    // return [
-    //   toDos.filter((toDo) => toDo.category === 'TO_DO'),
-    //   toDos.filter((toDo) => toDo.category === 'DOING'),
-    //   toDos.filter((toDo) => toDo.category === 'DONE'),
-    // ];
-    return toDos.filter((toDo) => toDo.category === category);
+    const minutes = get(minutesState);
+    return minutes / 60;
+  },
+  set: ({ set }, newValue) => {
+    const minutes = Number(newValue) * 60;
+    set(minutesState, minutes);
   },
 });
