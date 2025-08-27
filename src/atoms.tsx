@@ -17,3 +17,17 @@ export const hoursSelector = selector({
     set(minutesState, minutes);
   },
 });
+
+interface IToDoState {
+  [key: string]: string[];
+}
+
+// Drag and Drop
+export const toDoState = atom<IToDoState>({
+  key: 'toDo',
+  default: {
+    'To Do': ['a', 'b'],
+    Doing: ['c', 'd', 'e'],
+    Done: ['f'],
+  },
+});
