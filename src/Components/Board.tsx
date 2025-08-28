@@ -2,6 +2,9 @@ import { Droppable } from '@hello-pangea/dnd';
 import DraggableCard from './DraggableCard';
 import styled from 'styled-components';
 import { useRef } from 'react';
+import { useForm } from 'react-hook-form';
+import { ITodo, toDoState } from '../atoms';
+import { useSetRecoilState } from 'recoil';
 
 const Wrapper = styled.div`
   width: 300px;
@@ -37,25 +40,74 @@ const Area = styled.div.withConfig({
   padding: 20px;
 `;
 
+const Form = styled.form`
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 10px;
+  input {
+    width: 80%;
+    max-width: 200px;
+    padding: 8px 10px;
+    border-radius: 5px;
+    background-color: #f0f0f0;
+    font-size: 14px;
+    &:focus {
+      outline: none; /* 포커스 시 테두리 제거 */
+      background-color: #ffffff; /* 포커스 시 배경색 변경 */
+      box-shadow: 0 0 3px rgba(0, 0, 0, 0.2); /* 약간의 그림자 */
+    }
+  }
+`;
+
 interface IBoardProps {
-  toDos: string[];
+  toDos: ITodo[];
   boardId: string;
 }
 
+interface IForm {
+  toDo: string;
+}
+
 const Board = ({ toDos, boardId }: IBoardProps) => {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const onClick = () => {
-    inputRef.current?.focus();
-    setTimeout(() => {
-      inputRef.current?.blur();
-    }, 5000);
+  // const inputRef = useRef<HTMLInputElement>(null);
+  // const onClick = () => {
+  //   inputRef.current?.focus();
+  //   setTimeout(() => {
+  //     inputRef.current?.blur();
+  //   }, 5000);
+  // };
+
+  const setToDos = useSetRecoilState(toDoState);
+  const { register, setValue, handleSubmit } = useForm<IForm>();
+  const onValid = (data: IForm) => {
+    //console.log(data);
+    const newToDo = {
+      id: Date.now(),
+      text: data.toDo,
+    };
+    setToDos((allBoards) => {
+      return {
+        ...allBoards,
+        [boardId]: [...allBoards[boardId], newToDo],
+      };
+    });
+    setValue('toDo', '');
   };
   return (
     <Wrapper>
       <Title>{boardId}</Title>
       {/* ref = react js에서 html을 접근할수 있게 해주는 속성 */}
-      <input ref={inputRef} placeholder="grab me" />
-      <button onClick={onClick}>click me</button>
+      {/* <input ref={inputRef} placeholder="grab me" />
+      <button onClick={onClick}>click me</button> */}
+      <Form onSubmit={handleSubmit(onValid)}>
+        <input
+          {...register('toDo', { required: true })}
+          type="text"
+          placeholder={`Add task on ${boardId}`}
+        />
+      </Form>
+
       <Droppable droppableId={boardId}>
         {/* children을 함수로 하라고 한다 */}
         {(provided, snapshot) => (
@@ -90,7 +142,7 @@ const Board = ({ toDos, boardId }: IBoardProps) => {
           >
             {/* 마찬가지다 */}
             {toDos.map((todo, idx) => (
-              <DraggableCard key={todo} toDo={todo} idx={idx} />
+              <DraggableCard key={todo.id} toDoId={todo.id} toDoText={todo.text} idx={idx} />
             ))}
             {/* 이게 있어야 에러가 사라짐 필수라고 함(리스트 사이즈 고정을 위해서도 필요함) */}
             {provided.placeholder}
